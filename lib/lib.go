@@ -11,14 +11,24 @@ import (
 	"github.com/spf13/viper"
 )
 
-type podium struct {
+// Podium is a struct that represents a podium API application
+type Podium struct {
 	Config            *viper.Viper
 	URL               string
 	baseLeaderboard   string
 	localeLeaderboard string
 }
 
-//TODO: constructor
+// NewPodium returns a new podium API application
+func NewPodium(config *viper.Viper) *Podium {
+	app := &podium{
+		Config:            config,
+		URL:               config.Get("podium.url").(string),
+		baseLeaderboard:   config.Get("leaderboards.globalLeaderboard").(string),
+		localeLeaderboard: config.Get("leaderboards.localeLeaderboard").(string),
+	}
+	return app
+}
 
 func sendTo(method, url string, payload map[string]interface{}) (int, string, error) {
 	payloadJSON, err := json.Marshal(payload)
@@ -55,7 +65,6 @@ func sendTo(method, url string, payload map[string]interface{}) (int, string, er
 }
 
 func (app *podium) buildURL(pathname string) string {
-	// todo:
 	return fmt.Sprintf("%s%s", app.URL, pathname)
 }
 
