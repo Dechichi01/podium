@@ -21,11 +21,11 @@ type Podium struct {
 
 // NewPodium returns a new podium API application
 func NewPodium(config *viper.Viper) *Podium {
-	app := &podium{
+	app := &Podium{
 		Config:            config,
-		URL:               config.Get("podium.url").(string),
-		baseLeaderboard:   config.Get("leaderboards.globalLeaderboard").(string),
-		localeLeaderboard: config.Get("leaderboards.localeLeaderboard").(string),
+		URL:               config.GetString("podium.url"),
+		baseLeaderboard:   config.GetString("leaderboards.globalLeaderboard"),
+		localeLeaderboard: config.GetString("leaderboards.localeLeaderboard"),
 	}
 	return app
 }
@@ -64,79 +64,79 @@ func sendTo(method, url string, payload map[string]interface{}) (int, string, er
 	return resp.StatusCode, string(body), nil
 }
 
-func (app *podium) buildURL(pathname string) string {
+func (app *Podium) buildURL(pathname string) string {
 	return fmt.Sprintf("%s%s", app.URL, pathname)
 }
 
-func (app *podium) buildDeleteLeaderboardURL(leaderboard string) string {
+func (app *Podium) buildDeleteLeaderboardURL(leaderboard string) string {
 	var pathname = fmt.Sprintf("/l/%s", leaderboard)
 	return app.buildURL(pathname)
 }
 
-func (app *podium) buildGetTopPercentURL(leaderboard string, percentage int) string {
+func (app *Podium) buildGetTopPercentURL(leaderboard string, percentage int) string {
 	var pathname = fmt.Sprintf("/l/%s/top-percent/%d", leaderboard, percentage)
 	return app.buildURL(pathname)
 }
 
-func (app *podium) buildUpdateScoreURL(leaderboard string, playerID string) string {
+func (app *Podium) buildUpdateScoreURL(leaderboard string, playerID string) string {
 	var pathname = fmt.Sprintf("/l/%s/members/%s/score", leaderboard, playerID)
 	return app.buildURL(pathname)
 }
 
-func (app *podium) buildIncrementScoreURL(leaderboard string, playerID string) string {
+func (app *Podium) buildIncrementScoreURL(leaderboard string, playerID string) string {
 	return app.buildUpdateScoreURL(leaderboard, playerID)
 }
 
-func (app *podium) buildUpdateScoresURL(playerID string) string {
+func (app *Podium) buildUpdateScoresURL(playerID string) string {
 	var pathname = fmt.Sprintf("/m/%s/scores", playerID)
 	return app.buildURL(pathname)
 }
 
-func (app *podium) buildRemoveMemberFromLeaderboardURL(leaderboard string, member string) string {
+func (app *Podium) buildRemoveMemberFromLeaderboardURL(leaderboard string, member string) string {
 	var pathname = fmt.Sprintf("/l/%s/members/%s", leaderboard, member)
 	return app.buildURL(pathname)
 }
 
 // page is 1-based
-func (app *podium) buildGetTopURL(leaderboard string, page int, pageSize int) string {
+func (app *Podium) buildGetTopURL(leaderboard string, page int, pageSize int) string {
 	var pathname = fmt.Sprintf("/l/%s/top/%d?pageSize=%d", leaderboard, page, pageSize)
 	return app.buildURL(pathname)
 }
 
-func (app *podium) buildGetPlayerURL(leaderboard string, playerID string) string {
+func (app *Podium) buildGetPlayerURL(leaderboard string, playerID string) string {
 	var pathname = fmt.Sprintf("/l/%s/members/%s", leaderboard, playerID)
 	return app.buildURL(pathname)
 }
 
-func (app *podium) buildHealthcheckURL() string {
+func (app *Podium) buildHealthcheckURL() string {
 	var pathname = "/healthcheck"
 	return app.buildURL(pathname)
 }
 
 // external functions:
-func (app *podium) GetBaseLeaderboards() string {
+func (app *Podium) GetBaseLeaderboards() string {
 	return app.baseLeaderboard
 }
 
-func (app *podium) GetLocalizedLeaderboard(locale string) string {
+func (app *Podium) GetLocalizedLeaderboard(locale string) string {
 	localeLeaderboard := app.localeLeaderboard
 	result := strings.Replace(localeLeaderboard, "%{locale}", locale, -1)
 	return result
 }
 
-func (app *podium) GetTop(leaderboard string, page int, pageSize int) (int, string, error) {
+func (app *Podium) GetTop(leaderboard string, page int, pageSize int) (int, string, error) {
 	route := app.buildGetTopURL(leaderboard, page, pageSize)
 	status, body, err := sendTo("GET", route, nil)
 	return status, body, err
 }
 
-func (app *podium) GetTopPercent(leaderboard string, percentage int) (int, string, error) {
+func (app *Podium) GetTopPercent(leaderboard string, percentage int) (int, string, error) {
 	route := app.buildGetTopPercentURL(leaderboard, percentage)
 	status, body, err := sendTo("GET", route, nil)
 	return status, body, err
 }
 
-func (app *podium) UpdateScore(leaderboard string, playerID string, score int) (int, string, error) {
+func (app *Podium) UpdateScore(leaderboard string, playerID string, score int) (int, string, error) {
 	route := app.buildUpdateScoreURL(leaderboard, playerID)
 	payload := map[string]interface{}{
 		"score": score,
@@ -145,7 +145,7 @@ func (app *podium) UpdateScore(leaderboard string, playerID string, score int) (
 	return status, body, err
 }
 
-func (app *podium) IncrementScore(leaderboard string, playerID string, increment int) (int, string, error) {
+func (app *Podium) IncrementScore(leaderboard string, playerID string, increment int) (int, string, error) {
 	route := app.buildIncrementScoreURL(leaderboard, playerID)
 	payload := map[string]interface{}{
 		"increment": increment,
@@ -154,7 +154,7 @@ func (app *podium) IncrementScore(leaderboard string, playerID string, increment
 	return status, body, err
 }
 
-func (app *podium) UpdateScores(leaderboards []string, playerID string, score int) (int, string, error) {
+func (app *Podium) UpdateScores(leaderboards []string, playerID string, score int) (int, string, error) {
 	route := app.buildUpdateScoresURL(playerID)
 	payload := map[string]interface{}{
 		"score":        score,
@@ -164,25 +164,25 @@ func (app *podium) UpdateScores(leaderboards []string, playerID string, score in
 	return status, body, err
 }
 
-func (app *podium) RemoveMemberFromLeaderboard(leaderboard string, member string) (int, string, error) {
+func (app *Podium) RemoveMemberFromLeaderboard(leaderboard string, member string) (int, string, error) {
 	route := app.buildRemoveMemberFromLeaderboardURL(leaderboard, member)
 	status, body, err := sendTo("DELETE", route, nil)
 	return status, body, err
 }
 
-func (app *podium) GetPlayer(leaderboard string, playerID string) (int, string, error) {
+func (app *Podium) GetPlayer(leaderboard string, playerID string) (int, string, error) {
 	route := app.buildGetPlayerURL(leaderboard, playerID)
 	status, body, err := sendTo("GET", route, nil)
 	return status, body, err
 }
 
-func (app *podium) Healthcheck(leaderboard string, playerID string) (int, string, error) {
+func (app *Podium) Healthcheck(leaderboard string, playerID string) (int, string, error) {
 	route := app.buildHealthcheckURL()
 	status, body, err := sendTo("GET", route, nil)
 	return status, body, err
 }
 
-func (app *podium) DeleteLeaderboard(leaderboard string) (int, string, error) {
+func (app *Podium) DeleteLeaderboard(leaderboard string) (int, string, error) {
 	route := app.buildDeleteLeaderboardURL(leaderboard)
 	status, body, err := sendTo("DELETE", route, nil)
 	return status, body, err
